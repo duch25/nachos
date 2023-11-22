@@ -1,6 +1,9 @@
 #include "syscall.h"
 
+
 int main() {
-	ReadInt();
+	int c; 
+	c = ReadInt();
+	
 	Halt();
 }
