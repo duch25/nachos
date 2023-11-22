@@ -1,3 +1,6 @@
 gnu-decstation-ultrix/
 nachos-3.4/c++example/*
 *~
+*.o
+*.coff
+*.out

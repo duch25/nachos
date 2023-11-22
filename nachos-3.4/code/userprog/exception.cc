@@ -48,6 +48,7 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 
+// Tang thanh ghi PC
 void IncreasePC()
 {
     machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
@@ -55,8 +56,10 @@ void IncreasePC()
     machine->WriteRegister(NextPCReg, machine->ReadRegister(NextPCReg) + 4);
 }
 
+// Ham xu ly system call nhap so nguyen
 void ReadInt()
 {
+	// Nhap chuoi tu console
     char *buffer;
     buffer = new char[256];
     int len, number;
@@ -66,6 +69,7 @@ void ReadInt()
     number = 0;
     validNumber = true;
 
+	// Case 1: INT_MIN -> -2147483648
     if (len == 11 && buffer[0] == '-' && buffer[1] != '0')
     {
         char *minInt = (char *)"-2147483648";
@@ -90,7 +94,7 @@ void ReadInt()
                     break;
                 }
             }
-            else
+            else // Khong phai la chu so
             {
                 validNumber = false;
                 break;
@@ -103,7 +107,7 @@ void ReadInt()
     }
     else if (len < 11)
     {
-        if (len == 10 && buffer[0] != '-' && buffer[1] != '0')
+        if (len == 10 && buffer[0] != '-' && buffer[1] != '0') // Case 2: INT_MAX -> 2147483647
         {
             char *maxInt = (char *)"2147483647";
             bool isSmaller = false;
@@ -127,14 +131,14 @@ void ReadInt()
                         break;
                     }
                 }
-                else
+                else // Khong phai la chu so
                 {
                     validNumber = false;
                     break;
                 }
             }
         }
-        else
+        else // Case 3: Tat ca cac truong hop con lai
         {
             int l = 0, mul = 1;
             if (buffer[0] == '-')
@@ -158,7 +162,7 @@ void ReadInt()
                     int digit = buffer[i] - '0';
                     number = number * 10 + digit;
                 }
-                else
+                else // Khong phai la chu so
                 {
                     validNumber = false;
                     break;
@@ -168,13 +172,13 @@ void ReadInt()
         }
     }
 
-    if (!validNumber)
+    if (!validNumber) // Neu khong phai la so nguyen hop le -> 0
     {
         number = 0;
     }
-    machine->WriteRegister(2, number);
+    
+    machine->WriteRegister(2, number); // Luu gia tri so nguyen vao thanh ghi so 2
     delete buffer;
-    // printf("%d\n", number);
     return IncreasePC();
 }
 
@@ -186,31 +190,37 @@ void ExceptionHandler(ExceptionType which)
     {
     case NoException: // Everything ok!
         return;
+        
     case PageFaultException:
         DEBUG('a', "No valid translation found.\n");
         printf("No valid translation found.\n");
         interrupt->Halt();
         break;
+        
     case ReadOnlyException:
         DEBUG('a', "Write attempted to page marked read-only.\n");
         printf("Write attempted to page marked read-only.\n");
         interrupt->Halt();
         break;
+        
     case BusErrorException:
         DEBUG('a', "Translation resulted in an invalid physical address.\n");
         printf("Translation resulted in an invalid physical address.\n");
         interrupt->Halt();
         break;
+        
     case AddressErrorException:
         DEBUG('a', "Unaligned reference or one that was beyond the end of the address space.\n");
         printf("Unaligned reference or one that was beyond the end of the address space.\n");
         interrupt->Halt();
         break;
+        
     case OverflowException:
         DEBUG('a', "Integer overflow in add or sub.\n");
         printf("Integer overflow in add or sub.\n");
         interrupt->Halt();
         break;
+        
     case IllegalInstrException:
         DEBUG('a', "Unimplemented or reserved instr.\n");
         printf("Unimplemented or reserved instr.\n");
@@ -221,6 +231,7 @@ void ExceptionHandler(ExceptionType which)
         printf("Number exception types.\n");
         interrupt->Halt();
         break;
+        
     case SyscallException:
         switch (type)
         {
@@ -229,8 +240,10 @@ void ExceptionHandler(ExceptionType which)
             printf("Shutdown,initiated by user program.\n");
             interrupt->Halt();
             return;
+            
         case SC_ReadInt:
             return ReadInt();
+            
         default:
             printf("Unexpected user mode exception %d %d\n", which, type);
             ASSERT(FALSE);
