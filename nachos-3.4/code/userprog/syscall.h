@@ -31,6 +31,8 @@
 #define SC_Yield 10
 
 #define SC_ReadInt 11
+// Dinh nghia ma syscall ReadChar
+#define SC_ReadChar 13
 
 #ifndef IN_ASM
 
@@ -123,6 +125,8 @@ void Fork(void (*func)());
 void Yield();
 
 int ReadInt();
+// Khai bao ten ham ReadChar
+char ReadChar();
 #endif /* IN_ASM */
 
 #endif /* SYSCALL_H */
