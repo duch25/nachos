@@ -57,7 +57,7 @@ void IncreasePC()
 }
 
 // Ham xu ly system call nhap so nguyen
-void ReadInt()
+void ReadIntHandler()
 {
 	// Nhap chuoi tu console
     char *buffer;
@@ -242,7 +242,7 @@ void ExceptionHandler(ExceptionType which)
             return;
             
         case SC_ReadInt:
-            return ReadInt();
+            return ReadIntHandler();
             
         default:
             printf("Unexpected user mode exception %d %d\n", which, type);
