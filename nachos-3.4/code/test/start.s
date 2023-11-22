@@ -139,6 +139,24 @@ ReadInt:
 	j	$31
 	.end ReadInt 
 
+	.globl ReadChar
+	.ent ReadChar
+
+ReadChar:
+	addiu $2, $0, SC_ReadChar
+	syscall
+	j	$31
+	.end ReadChar
+
+	.globl PrintChar
+	.ent PrintChar
+
+PrintChar:
+	addiu $2, $0, SC_PrintChar
+	syscall
+	j	$31
+	.end PrintChar
+
 /* dummy function to keep gcc happy */
         .globl  __main
         .ent    __main

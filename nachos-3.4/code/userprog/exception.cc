@@ -182,6 +182,42 @@ void ReadIntHandler()
     return IncreasePC();
 }
 
+/*Cai dat syscall ReadChar*/
+void ReadCharHandler(){
+	int maxBytes = 255;
+	char* buffer = new char[255];
+	int numBytes = synchConsole->Read(buffer, maxBytes);
+
+	if(numBytes > 1) //Neu nhap nhieu hon 1 ky tu thi tra ve 0
+	{
+		machine->WriteRegister(2, 0);
+	}
+	else if(numBytes == 0) // Neu chuoi la ki tu rong
+	{
+		machine->WriteRegister(2, 0);
+	}
+	else
+	{
+	// Nhap dung 1 ki tu thi lay gia tri buffer[0] va return cho r2
+		char c = buffer[0];
+		machine->WriteRegister(2, c);
+	}
+
+	delete buffer;
+	return IncreasePC();
+}
+
+
+void PrintCharHandler() {
+	// Doc ki tu thanh ghi 4 la tham so dau vao va gan cho c
+	char c = (char)machine->ReadRegister(4);
+	// In ki tu c
+	synchConsole->Write(&c,1);
+	// Tang thanh ghi PC
+	return IncreasePC();
+}
+
+
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
@@ -243,6 +279,10 @@ void ExceptionHandler(ExceptionType which)
             
         case SC_ReadInt:
             return ReadIntHandler();
+	case SC_ReadChar:
+	    return ReadCharHandler();
+	case SC_PrintChar:
+	    return PrintCharHandler();
             
         default:
             printf("Unexpected user mode exception %d %d\n", which, type);
