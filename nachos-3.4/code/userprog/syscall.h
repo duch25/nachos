@@ -34,6 +34,8 @@
 // Dinh nghia ma syscall ReadChar
 #define SC_ReadChar 13
 
+#define SC_PrintChar 14
+
 #ifndef IN_ASM
 
 /* The system call interface.  These are the operations the Nachos
@@ -127,6 +129,9 @@ void Yield();
 int ReadInt();
 // Khai bao ten ham ReadChar
 char ReadChar();
+
+void PrintChar(char c);
+
 #endif /* IN_ASM */
 
 #endif /* SYSCALL_H */

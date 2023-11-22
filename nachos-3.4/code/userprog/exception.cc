@@ -207,6 +207,17 @@ void ReadCharHandler(){
 	return IncreasePC();
 }
 
+
+void PrintCharHandler() {
+	// Doc ki tu thanh ghi 4 la tham so dau vao va gan cho c
+	char c = (char)machine->ReadRegister(4);
+	// In ki tu c
+	synchConsole->Write(&c,1);
+	// Tang thanh ghi PC
+	return IncreasePC();
+}
+
+
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
@@ -270,6 +281,8 @@ void ExceptionHandler(ExceptionType which)
             return ReadIntHandler();
 	case SC_ReadChar:
 	    return ReadCharHandler();
+	case SC_PrintChar:
+	    return PrintCharHandler();
             
         default:
             printf("Unexpected user mode exception %d %d\n", which, type);
