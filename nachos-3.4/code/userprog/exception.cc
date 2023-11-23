@@ -182,37 +182,28 @@ void ReadIntHandler()
     return IncreasePC();
 }
 
+// Cai dat ham readChar tu console
+char readChar(){
+	char ch = synchConsole->getChar();
+	return ch;
+}
 /*Cai dat syscall ReadChar*/
 void ReadCharHandler(){
-	int maxBytes = 255;
-	char* buffer = new char[255];
-	int numBytes = synchConsole->Read(buffer, maxBytes);
-
-	if(numBytes > 1) //Neu nhap nhieu hon 1 ky tu thi tra ve 0
-	{
-		machine->WriteRegister(2, 0);
-	}
-	else if(numBytes == 0) // Neu chuoi la ki tu rong
-	{
-		machine->WriteRegister(2, 0);
-	}
-	else
-	{
-	// Nhap dung 1 ki tu thi lay gia tri buffer[0] va return cho r2
-		char c = buffer[0];
-		machine->WriteRegister(2, c);
-	}
-
-	delete buffer;
+	char c;
+	c = readChar();
+	machine->WriteRegister(2, c);
 	return IncreasePC();
 }
 
-
+// Cai dat printChar
+void printChar(char c) {
+	synchConsole->putChar(c);
+}
 void PrintCharHandler() {
 	// Doc ki tu thanh ghi 4 la tham so dau vao va gan cho c
 	char c = (char)machine->ReadRegister(4);
 	// In ki tu c
-	synchConsole->Write(&c,1);
+	printChar(c);
 	// Tang thanh ghi PC
 	return IncreasePC();
 }
