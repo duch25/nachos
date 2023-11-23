@@ -2,9 +2,7 @@
 
 
 int main() {
-	char c;
-	c = ReadChar();
-	PrintChar(c);
 	
+	ReadInt();
 	Halt();
 }
