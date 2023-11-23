@@ -191,12 +191,69 @@ void ReadIntHandler()
     return increasePC();
 }
 
+void printInt(char* buffer, int numberOfNum) {
+    synchConsole->Write(buffer, numberOfNum);
+}
+
+void PrintIntHandler()
+{
+    // Chuc nang: In so nguyen len man hinh console
+	int number = (int)machine->ReadRegister(4);
+    char *buffer;
+
+	// Qua trinh chuyen doi so thanh chuoi de in ra man hinh
+    bool isNegative = false; // input la so duong
+    int numberOfNum = 0;     // Bien de luu so luong chu so cua number
+    int firstNumIndex = 0;
+	int tmp_number = number; // Bien tam cho number
+    
+    // Truong hop so 0
+    if (number == 0)
+    {
+        buffer = new char[1];
+        buffer[0] = '0';
+		numberOfNum = 1;
+    }
+	else { 
+		if (number < 0) {
+			isNegative = true;
+			number = number * -1; // Chuyen so am thanh so duong de tinh so chu so
+		}
+		
+		while (tmp_number) {
+			numberOfNum++;
+			tmp_number /= 10;
+		}
+		
+		// Tao buffer chuoi de in ra man hinh
+		buffer = new char[11];
+
+		for (int i = numberOfNum - 1; i >= 0; i--) {
+			buffer[i] = (char)((number % 10) + 48);
+			number /= 10;
+		}
+
+		// Truong hop la so am
+		if (isNegative) {
+			printInt("-", 1);
+		}
+
+		buffer[numberOfNum] = 0;
+	}
+    
+	printInt(buffer, numberOfNum);
+    
+    delete buffer;
+    return increasePC();
+}
+
 // Cai dat ham readChar tu console
 char readChar()
 {
     char ch = synchConsole->getChar();
     return ch;
 }
+
 /*Cai dat syscall ReadChar*/
 void ReadCharHandler()
 {
@@ -211,6 +268,7 @@ void printChar(char c)
 {
     synchConsole->putChar(c);
 }
+
 void PrintCharHandler()
 {
     // Doc ki tu thanh ghi 4 la tham so dau vao va gan cho c
@@ -428,6 +486,9 @@ void ExceptionHandler(ExceptionType which)
 
         case SC_ReadInt:
             return ReadIntHandler();
+            
+        case SC_PrintInt:
+			return PrintIntHandler();
 
         case SC_ReadChar:
             return ReadCharHandler();
