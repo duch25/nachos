@@ -57,7 +57,7 @@ void IncreasePC()
 }
 
 // Ham xu ly system call nhap so nguyen
-void ReadIntHandler()
+int readInt()
 {
 	// Nhap chuoi tu console
     char *buffer;
@@ -177,9 +177,15 @@ void ReadIntHandler()
         number = 0;
     }
     
-    machine->WriteRegister(2, number); // Luu gia tri so nguyen vao thanh ghi so 2
     delete buffer;
-    return IncreasePC();
+    return number;
+}
+
+void ReadIntHandler() {
+	int n;
+	n = readInt();
+	machine->WriteRegister(2, n); // Luu gia tri so nguyen vao thanh ghi so 2
+	return IncreasePC();
 }
 
 // Cai dat ham readChar tu console
@@ -270,10 +276,10 @@ void ExceptionHandler(ExceptionType which)
             
         case SC_ReadInt:
             return ReadIntHandler();
-	case SC_ReadChar:
-	    return ReadCharHandler();
-	case SC_PrintChar:
-	    return PrintCharHandler();
+		case SC_ReadChar:
+			return ReadCharHandler();
+		case SC_PrintChar:
+			return PrintCharHandler();
             
         default:
             printf("Unexpected user mode exception %d %d\n", which, type);
