@@ -31,6 +31,9 @@
 #define SC_Yield 10
 
 #define SC_ReadInt 11
+// Dinh nghia ma sycall PrintInt
+#define SC_PrintInt 12
+
 // Dinh nghia ma syscall ReadChar
 #define SC_ReadChar 13
 
@@ -130,6 +133,10 @@ void Fork(void (*func)());
 void Yield();
 
 int ReadInt();
+
+// Khai bao ten ham PrintInt
+void PrintInt(int number);
+
 // Khai bao ten ham ReadChar
 char ReadChar();
 
