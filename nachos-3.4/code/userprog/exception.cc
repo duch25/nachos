@@ -183,11 +183,12 @@ int readInt()
     return number;
 }
 
-void ReadIntHandler() {
-	int n;
-	n = readInt();
-	machine->WriteRegister(2, n); // Luu gia tri so nguyen vao thanh ghi so 2
-	return IncreasePC();
+void ReadIntHandler()
+{
+    int n;
+    n = readInt();
+    machine->WriteRegister(2, n); // Luu gia tri so nguyen vao thanh ghi so 2
+    return increasePC();
 }
 
 // Cai dat ham readChar tu console
