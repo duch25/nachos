@@ -1,32 +1,74 @@
-/* sort.c 
- *    Test program to sort a large number of integers.
- *
- *    Intention is to stress virtual memory system.
- *
- *    Ideally, we could read the unsorted array off of the file system,
- *	and store the result back to the file system!
- */
-
 #include "syscall.h"
 
-int A[1024];	/* size of physical memory; with code, we'll run out of space!*/
+void swapElements(int a[], int i, int j) {
+	int tmp = a[i];
+	a[i] = a[j];
+	a[j] = tmp;
+}
 
-int
-main()
-{
-    int i, j, tmp;
+void sortAscending(int a[], int n) {
+	int i, j, tmp;
+	
+	for(i = 0; i < n; i++) {
+		for(j = i + 1; j < n; j++) {
+			if(a[i] > a[j]) {
+				swapElements(a, i, j);			
+			}		
+		}
+	}
+}
 
-    /* first initialize the array, in reverse sorted order */
-    for (i = 0; i < 1024; i++)		
-        A[i] = 1024 - i;
 
-    /* then sort! */
-    for (i = 0; i < 1023; i++)
-        for (j = i; j < (1023 - i); j++)
-	   if (A[j] > A[j + 1]) {	/* out of order -> need to swap ! */
-	      tmp = A[j];
-	      A[j] = A[j + 1];
-	      A[j + 1] = tmp;
-    	   }
-    Exit(A[0]);		/* and then we're done -- should be 0! */
+void sortDescending(int a[], int n) {
+	int i, j, tmp;
+	
+	for(i = 0; i < n; i++) {
+		for(j = i + 1; j < n; j++) {
+			if(a[i] < a[j]) {
+				swapElements(a, i, j);			
+			}		
+		}
+	}
+}
+
+int main() {
+	int n, i, order;
+	int a[100];
+	
+	PrintString("Enter number of elements: ");
+	n = ReadInt();
+
+	while(n <= 0 || n > 100) {
+		PrintString("Invalid number! Enter again: ");
+		n = ReadInt();
+	}
+
+	for(i = 0; i < n; i++) {
+		PrintString("Enter element ");
+		PrintInt(i);
+		PrintString(" th: ");		
+		a[i] = ReadInt();	
+	}
+
+	PrintString("Choose type of sort\n0. Ascending.\n1. Descending.\n");
+	order = ReadInt();
+
+	if(order == 0) {
+		sortAscending(a, n);
+	}
+	else if(order == 1) {
+		sortDescending(a, n);
+	}
+	 
+	PrintString("Result: ");
+
+	for(i = 0; i < n; i++) {
+		PrintInt(a[i]);
+		PrintString(" ");
+	
+		if(i == n - 1)	
+			PrintString("\n");	
+	}
+
+	Halt();
 }
