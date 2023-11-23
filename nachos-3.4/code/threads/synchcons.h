@@ -11,6 +11,8 @@ public:
 	int Read(char *into, int numBytes);	// Read synch line
 						// Ends in EOLN or ^A
 	int Write(char *from, int numBytes);	// Write a synchronous line
+	char getChar();
+	void putChar(char c);
 private:
 	Console		*cons;			// Pointer to an async console
 } ;
