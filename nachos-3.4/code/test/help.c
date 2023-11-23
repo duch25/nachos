@@ -10,8 +10,12 @@ int main()
 
     PrintString("\n");
     PrintString("=== PROGRAM INSTRUCTIONS\n");
+
     PrintString("1. ASCII: at code directory, run ./userprog/nachos -rs 1023 -x ./test/ascii to print the ASCII table\n");
+    
     PrintString("2. Sort: at code directory, run ./userprog/nachos -rs 1023 -x ./test/sort to start the sort program\n");
+    PrintString("\ta) Enter a number of elements (<= 100).\n");
+    PrintString("\tb) Choose type of sort, 0 for Ascending, 1 for Descending.\n");
 
     PrintString("\n");
 
