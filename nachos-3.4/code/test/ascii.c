@@ -2,7 +2,7 @@
 
 int main() {
     unsigned char c = (unsigned char)(0);
-
+    PrintString("ASCII TABLE\n");
     while (c <= (unsigned char)(255)) {
         PrintInt((int)c);
         PrintString(": ");
