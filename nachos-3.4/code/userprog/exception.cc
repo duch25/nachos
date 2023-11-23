@@ -52,7 +52,7 @@
 //----------------------------------------------------------------------
 
 // Tang thanh ghi PC
-void IncreasePC()
+void increasePC()
 {
     machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
     machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
@@ -182,7 +182,7 @@ void ReadIntHandler()
 
     machine->WriteRegister(2, number); // Luu gia tri so nguyen vao thanh ghi so 2
     delete buffer;
-    return IncreasePC();
+    return increasePC();
 }
 
 // Cai dat ham readChar tu console
@@ -197,7 +197,7 @@ void ReadCharHandler()
     char c;
     c = readChar();
     machine->WriteRegister(2, c);
-    return IncreasePC();
+    return increasePC();
 }
 
 // Cai dat printChar
@@ -212,7 +212,7 @@ void PrintCharHandler()
     // In ki tu c
     printChar(c);
     // Tang thanh ghi PC
-    return IncreasePC();
+    return increasePC();
 }
 
 // ham copy vung nho tu user space vao system space
@@ -364,6 +364,9 @@ void ExceptionHandler(ExceptionType which)
     switch (which)
     {
     case NoException: // Everything ok!
+        // return permission to operating system
+        interrupt->setStatus(SystemMode);
+        DEBUG('a', "Return permission to operating system\n");
         return;
 
     case PageFaultException:
@@ -401,6 +404,7 @@ void ExceptionHandler(ExceptionType which)
         printf("Unimplemented or reserved instr.\n");
         interrupt->Halt();
         break;
+
     case NumExceptionTypes:
         DEBUG('a', "Number exception types.\n");
         printf("Number exception types.\n");
@@ -411,34 +415,38 @@ void ExceptionHandler(ExceptionType which)
         switch (type)
         {
         case SC_Halt:
-            DEBUG('a', "Shutdown,initiated by user program.\n");
-            printf("Shutdown,initiated by user program.\n");
+            DEBUG('a', "Shutdown, initiated by user program.\n");
+            printf("Shutdown, initiated by user program.\n");
             interrupt->Halt();
             return;
 
         case SC_ReadInt:
             return ReadIntHandler();
+
         case SC_ReadChar:
             return ReadCharHandler();
+
         case SC_PrintChar:
             return PrintCharHandler();
 
         case SC_ReadString:
             ReadStringHandler();
-            IncreasePC();
+            increasePC();
             return;
 
         case SC_PrintString:
             PrintStringHandler();
-            IncreasePC();
+            increasePC();
             return;
 
         default:
-            printf("Unexpected user mode exception %d %d\n", which, type);
-            ASSERT(FALSE);
+            printf("Unexpected system call type %d\n", type);
         }
+        break;
+
     default:
         printf("Unexpected user mode exception %d %d\n", which, type);
-        ASSERT(FALSE);
     }
+
+    ASSERT(FALSE);
 }
