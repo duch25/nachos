@@ -2,7 +2,8 @@
 
 
 int main() {
-	
-	ReadInt();
+	int n;
+	n = ReadInt();
+	PrintInt(n);
 	Halt();
 }
