@@ -25,6 +25,9 @@
 #include "system.h"
 #include "syscall.h"
 
+// MAX_SIZE cho viec xu ly cac syscall lien quan den chuoi
+#define MAX_SIZE 1000
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -49,7 +52,7 @@
 //----------------------------------------------------------------------
 
 // Tang thanh ghi PC
-void IncreasePC()
+void increasePC()
 {
     machine->WriteRegister(PrevPCReg, machine->ReadRegister(PCReg));
     machine->WriteRegister(PCReg, machine->ReadRegister(NextPCReg));
@@ -59,7 +62,7 @@ void IncreasePC()
 // Ham xu ly system call nhap so nguyen
 int readInt()
 {
-	// Nhap chuoi tu console
+    // Nhap chuoi tu console
     char *buffer;
     buffer = new char[256];
     int len, number;
@@ -69,7 +72,7 @@ int readInt()
     number = 0;
     validNumber = true;
 
-	// Case 1: INT_MIN -> -2147483648
+    // Case 1: INT_MIN -> -2147483648
     if (len == 11 && buffer[0] == '-' && buffer[1] != '0')
     {
         char *minInt = (char *)"-2147483648";
@@ -176,7 +179,6 @@ int readInt()
     {
         number = 0;
     }
-    
     delete buffer;
     return number;
 }
@@ -189,31 +191,176 @@ void ReadIntHandler() {
 }
 
 // Cai dat ham readChar tu console
-char readChar(){
-	char ch = synchConsole->getChar();
-	return ch;
+char readChar()
+{
+    char ch = synchConsole->getChar();
+    return ch;
 }
 /*Cai dat syscall ReadChar*/
-void ReadCharHandler(){
-	char c;
-	c = readChar();
-	machine->WriteRegister(2, c);
-	return IncreasePC();
+void ReadCharHandler()
+{
+    char c;
+    c = readChar();
+    machine->WriteRegister(2, c);
+    return increasePC();
 }
 
 // Cai dat printChar
-void printChar(char c) {
-	synchConsole->putChar(c);
+void printChar(char c)
+{
+    synchConsole->putChar(c);
 }
-void PrintCharHandler() {
-	// Doc ki tu thanh ghi 4 la tham so dau vao va gan cho c
-	char c = (char)machine->ReadRegister(4);
-	// In ki tu c
-	printChar(c);
-	// Tang thanh ghi PC
-	return IncreasePC();
+void PrintCharHandler()
+{
+    // Doc ki tu thanh ghi 4 la tham so dau vao va gan cho c
+    char c = (char)machine->ReadRegister(4);
+    // In ki tu c
+    printChar(c);
+    // Tang thanh ghi PC
+    return increasePC();
 }
 
+// ham copy vung nho tu user space vao system space
+// Input:
+//      User space address(int)
+//      Limit of buffer(int)
+// Output:
+//      Buffer(char *)
+
+char *User2System(int virtAddr, int limit)
+{
+    int i; // index
+    int oneChar;
+    char *kernelBuf = NULL;
+
+    kernelBuf = new char[limit + 1]; // need for terminal string
+    if (kernelBuf == NULL)
+        return kernelBuf;
+
+    memset(kernelBuf, 0, limit + 1);
+
+    for (i = 0; i < limit; i++)
+    {
+        machine->ReadMem(virtAddr + i, 1, &oneChar);
+        kernelBuf[i] = (char)oneChar;
+
+        if (oneChar == 0)
+            break;
+    }
+
+    return kernelBuf;
+}
+
+// ham copy vung nho tu system space vao user space
+// Input:
+//      User space address (int)
+//      Limit of buffer (int)
+//      Buffer (char[])
+// Output:
+//      Number of bytes copied(int)
+
+int System2User(int virtAddr, int len, char *buffer)
+{
+    if (len < 0)
+        return -1;
+
+    if (len == 0)
+        return len;
+
+    int i = 0;
+    int oneChar = 0;
+
+    do
+    {
+        oneChar = (int)buffer[i];
+        machine->WriteMem(virtAddr + i, 1, oneChar);
+        i++;
+    } while (i < len && oneChar != 0);
+
+    return i;
+}
+
+// xu ly system call ReadString
+void readString(char buffer[], int length)
+{
+    for (int i = 0; i < length - 1; ++i)
+    {
+        // doc tung ki tu vao buffer
+        buffer[i] = readChar();
+
+        // ki tu ket thuc (enter)
+        if (buffer[i] == '\012')
+        {
+            buffer[i] = '\0';
+            break;
+        }
+    }
+
+    buffer[length - 1] = '\0';
+}
+
+// xu ly system call PrintString
+void printString(char buffer[])
+{
+    char *temp = buffer;
+
+    // in tung ki mot cho den khi gap ki tu ket thuc: 0
+    while (*temp)
+    {
+        printChar(*temp);
+        temp++;
+    }
+}
+
+void ReadStringHandler()
+{
+    // lay gia tri cac tham so
+    int virtualAddr = machine->ReadRegister(4);
+    int length = machine->ReadRegister(5);
+
+    // chuoi vuot qua gioi han chieu dai
+    if (length < 0 || length > MAX_SIZE)
+    {
+        printString((char *)"Invalid string!\n");
+        interrupt->Halt();
+        return;
+    }
+
+    // copy vung nho tu userspace vao system space
+    char *buffer = User2System(virtualAddr, length);
+
+    // doc chuoi
+    readString(buffer, length);
+
+    // copy vung nho tu system space vao user space
+    System2User(virtualAddr, length, buffer);
+
+    delete[] buffer;
+}
+
+void PrintStringHandler()
+{
+    // lay gia tri cac tham so
+    int virtualAddr = machine->ReadRegister(4);
+    char *buffer = NULL;
+
+    while (true)
+    {
+        // copy vung nho tu userspace vao system space theo limit size
+        buffer = User2System(virtualAddr, MAX_SIZE);
+        printString(buffer);
+
+        // kiem tra ket thuc chuoi
+        if (buffer[MAX_SIZE - 1] == 0)
+        {
+            delete[] buffer;
+            break;
+        }
+
+        virtualAddr += MAX_SIZE;
+        delete[] buffer;
+    }
+}
 
 void ExceptionHandler(ExceptionType which)
 {
@@ -222,71 +369,89 @@ void ExceptionHandler(ExceptionType which)
     switch (which)
     {
     case NoException: // Everything ok!
+        // return permission to operating system
+        interrupt->setStatus(SystemMode);
+        DEBUG('a', "Return permission to operating system\n");
         return;
-        
+
     case PageFaultException:
         DEBUG('a', "No valid translation found.\n");
         printf("No valid translation found.\n");
         interrupt->Halt();
         break;
-        
+
     case ReadOnlyException:
         DEBUG('a', "Write attempted to page marked read-only.\n");
         printf("Write attempted to page marked read-only.\n");
         interrupt->Halt();
         break;
-        
+
     case BusErrorException:
         DEBUG('a', "Translation resulted in an invalid physical address.\n");
         printf("Translation resulted in an invalid physical address.\n");
         interrupt->Halt();
         break;
-        
+
     case AddressErrorException:
         DEBUG('a', "Unaligned reference or one that was beyond the end of the address space.\n");
         printf("Unaligned reference or one that was beyond the end of the address space.\n");
         interrupt->Halt();
         break;
-        
+
     case OverflowException:
         DEBUG('a', "Integer overflow in add or sub.\n");
         printf("Integer overflow in add or sub.\n");
         interrupt->Halt();
         break;
-        
+
     case IllegalInstrException:
         DEBUG('a', "Unimplemented or reserved instr.\n");
         printf("Unimplemented or reserved instr.\n");
         interrupt->Halt();
         break;
+
     case NumExceptionTypes:
         DEBUG('a', "Number exception types.\n");
         printf("Number exception types.\n");
         interrupt->Halt();
         break;
-        
+
     case SyscallException:
         switch (type)
         {
         case SC_Halt:
-            DEBUG('a', "Shutdown,initiated by user program.\n");
-            printf("Shutdown,initiated by user program.\n");
+            DEBUG('a', "Shutdown, initiated by user program.\n");
+            printf("Shutdown, initiated by user program.\n");
             interrupt->Halt();
             return;
-            
+
         case SC_ReadInt:
             return ReadIntHandler();
-		case SC_ReadChar:
-			return ReadCharHandler();
-		case SC_PrintChar:
-			return PrintCharHandler();
-            
+
+        case SC_ReadChar:
+            return ReadCharHandler();
+
+        case SC_PrintChar:
+            return PrintCharHandler();
+
+        case SC_ReadString:
+            ReadStringHandler();
+            increasePC();
+            return;
+
+        case SC_PrintString:
+            PrintStringHandler();
+            increasePC();
+            return;
+
         default:
-            printf("Unexpected user mode exception %d %d\n", which, type);
-            ASSERT(FALSE);
+            printf("Unexpected system call type %d\n", type);
         }
+        break;
+
     default:
         printf("Unexpected user mode exception %d %d\n", which, type);
-        ASSERT(FALSE);
     }
+
+    ASSERT(FALSE);
 }
