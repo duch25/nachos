@@ -205,7 +205,6 @@ void PrintIntHandler()
     bool isNegative = false; // input la so duong
     int numberOfNum = 0;     // Bien de luu so luong chu so cua number
     int firstNumIndex = 0;
-	int tmp_number = number; // Bien tam cho number
     
     // Truong hop so 0
     if (number == 0)
@@ -214,30 +213,43 @@ void PrintIntHandler()
         buffer[0] = '0';
 		numberOfNum = 1;
     }
-	else { 
+	else {
+		// Tao buffer chuoi de in ra man hinh
+		buffer = new char[11]; 
+		bool isMinInt = false;
+		
 		if (number < 0) {
 			isNegative = true;
+			
+			if (number == -2147483648) {
+				isMinInt = true;
+				// printf("%d", number % 10);
+				buffer[9] = (char)((number % 10) * -1 + 48);
+				number /= 10;
+			}
+			
 			number = number * -1; // Chuyen so am thanh so duong de tinh so chu so
 		}
 		
+		int tmp_number = number; // Bien tam cho number
 		while (tmp_number) {
 			numberOfNum++;
 			tmp_number /= 10;
 		}
-		
-		// Tao buffer chuoi de in ra man hinh
-		buffer = new char[11];
+	
 
 		for (int i = numberOfNum - 1; i >= 0; i--) {
 			buffer[i] = (char)((number % 10) + 48);
 			number /= 10;
 		}
+		
 
 		// Truong hop la so am
 		if (isNegative) {
 			printInt("-", 1);
 		}
-
+		
+		if (isMinInt) numberOfNum++;
 		buffer[numberOfNum] = 0;
 	}
     
