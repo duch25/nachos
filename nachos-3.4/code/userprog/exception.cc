@@ -437,13 +437,8 @@ void CreateFileHandler() {
 	
 	int virtualAddr = machine->ReadRegister(4);
 	char* fileName = User2System(virtualAddr, 33);
-	if (strlen(fileName) == 0) {
+	if (fileName == NULL || strlen(fileName) == 0) {
 		machine->WriteRegister(2, -1); 
-		return;
-	}
-	if (fileName == NULL) {
-		machine->WriteRegister(2, -1);
-		delete fileName;
 		return;
 	}
 	if (!fileSystem->Create(fileName, 0)) {
@@ -462,7 +457,7 @@ void OpenHandler() {
 	char* fileName = User2System(virtualAddr, 32);
 	
 	int freeSlot = fileSystem->FindFreeSlot();
-	if (freeSlot != -1) {
+	if (freeSlot != -1 && type >= 0) {
 		if (type <= 1) {
 			fileSystem->openf[freeSlot] = fileSystem->Open(fileName, type);
 			if (fileSystem->openf[freeSlot] != NULL) {
@@ -470,15 +465,14 @@ void OpenHandler() {
 			} else {
 				machine->WriteRegister(2, -1); 
 			}
+		} else if (type <= 3) {
+			machine->WriteRegister(2, type - 2); 
 		} else {
-			printf("Invalid type!!! (0 <= type <= 1)\n");
+			printf("Invalid type!!!\n");
 			machine->WriteRegister(2, -1);
 		}
-		delete[] fileName;
-		return;
-	}
-	machine->WriteRegister(2, -1); 
-	delete[] fileName;
+	} else machine->WriteRegister(2, -1); 
+	delete fileName;
 }
 
 void CloseHandler() {
@@ -490,6 +484,33 @@ void CloseHandler() {
 		return;
 	}
 	machine->WriteRegister(2, -1);
+}
+
+void ReadHandler() {
+	int virtualAddr = machine->ReadRegister(4); 
+	int charcount = machine->ReadRegister(5); 
+	int fileID = machine->ReadRegister(6);
+	int oldPos;
+	char* buffer;
+	if (fileID < 0 || fileID > 9 || fileID == 1 || fileSystem->openf[fileID] == NULL) {
+		printf("Khong the doc!!!\n");
+		machine->WriteRegister(2, -1);
+	} else {
+		oldPos = fileSystem->openf[fileID]->getSeekPosition(); 
+		buffer = User2System(virtualAddr, charcount);
+		if (fileID == 0) {
+			int numBytes = synchConsole->Read(buffer, charcount); 
+			machine->WriteRegister(2, numBytes);
+			System2User(virtualAddr, numBytes, buffer);
+		} else if (fileSystem->openf[fileID]->Read(buffer, charcount)) {
+			int newPos = fileSystem->openf[fileID]->getSeekPosition();
+			System2User(virtualAddr, newPos - oldPos, buffer); 
+			machine->WriteRegister(2, newPos - oldPos);
+		} else {
+			machine->WriteRegister(2, -2);
+		}
+		delete buffer;
+	}
 }
 
 void ExceptionHandler(ExceptionType which)
@@ -591,6 +612,12 @@ void ExceptionHandler(ExceptionType which)
 			CloseHandler();
 			increasePC();
 			return;
+			
+		case SC_Read:
+			ReadHandler();
+			increasePC();
+			return;
+			
         default:
             printf("Unexpected system call type %d\n", type);
         }

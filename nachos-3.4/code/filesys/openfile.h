@@ -53,7 +53,7 @@ class OpenFile {
 		currentOffset += numWritten;
 		return numWritten;
 		}
-
+	int getSeekPosition() { currentOffset = Tell(file); return currentOffset; }
     int Length() { Lseek(file, 0, 2); return Tell(file); }
     
   private:
@@ -72,7 +72,7 @@ class OpenFile {
 					
 	OpenFile(int sector, int type);
 	
-    ~OpenFile() { Close(file); }			// Close the file
+    ~OpenFile();			// Close the file
 
     void Seek(int position); 		// Set the position from which to 
 					// start reading/writing -- UNIX lseek
@@ -92,7 +92,7 @@ class OpenFile {
 					// file (this interface is simpler 
 					// than the UNIX idiom -- lseek to 
 					// end of file, tell, lseek back 
-    
+	int getSeekPosition() { return seekPosition; }
   private:
     FileHeader *hdr;			// Header for this file 
     int seekPosition;			// Current position within the file
