@@ -455,6 +455,43 @@ void CreateFileHandler() {
 	delete fileName;
 }
 
+void OpenHandler() {
+	int virtualAddr = machine->ReadRegister(4); 
+	int type = machine->ReadRegister(5); 
+	
+	char* fileName = User2System(virtualAddr, 32);
+	
+	int freeSlot = fileSystem->FindFreeSlot();
+	if (freeSlot != -1) {
+		if (type <= 1) {
+			fileSystem->openf[freeSlot] = fileSystem->Open(fileName, type);
+			if (fileSystem->openf[freeSlot] != NULL) {
+				machine->WriteRegister(2, freeSlot); 
+			} else {
+				machine->WriteRegister(2, -1); 
+			}
+		} else {
+			printf("Invalid type!!! (0 <= type <= 1)\n");
+			machine->WriteRegister(2, -1);
+		}
+		delete[] fileName;
+		return;
+	}
+	machine->WriteRegister(2, -1); 
+	delete[] fileName;
+}
+
+void CloseHandler() {
+	int fileID = machine->ReadRegister(4);
+	if (fileID >= 0 && fileID <= 9 && fileSystem->openf[fileID]) {
+		delete fileSystem->openf[fileID]; 
+		fileSystem->openf[fileID] = NULL; 
+		machine->WriteRegister(2, 0);
+		return;
+	}
+	machine->WriteRegister(2, -1);
+}
+
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
@@ -544,7 +581,16 @@ void ExceptionHandler(ExceptionType which)
 			CreateFileHandler();
 			increasePC();
 			return;
-		
+			
+		case SC_Open:
+			OpenHandler();
+			increasePC();
+			return;
+			
+		case SC_Close:
+			CloseHandler();
+			increasePC();
+			return;
         default:
             printf("Unexpected system call type %d\n", type);
         }
