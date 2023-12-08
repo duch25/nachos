@@ -433,6 +433,28 @@ void PrintStringHandler()
     }
 }
 
+void CreateFileHandler() {
+	
+	int virtualAddr = machine->ReadRegister(4);
+	char* fileName = User2System(virtualAddr, 33);
+	if (strlen(fileName) == 0) {
+		machine->WriteRegister(2, -1); 
+		return;
+	}
+	if (fileName == NULL) {
+		machine->WriteRegister(2, -1);
+		delete fileName;
+		return;
+	}
+	if (!fileSystem->Create(fileName, 0)) {
+		machine->WriteRegister(2, -1);
+		delete fileName;
+		return;
+	}
+	machine->WriteRegister(2, 0);
+	delete fileName;
+}
+
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
@@ -517,7 +539,12 @@ void ExceptionHandler(ExceptionType which)
             PrintStringHandler();
             increasePC();
             return;
-
+		
+		case SC_CreateFile:
+			CreateFileHandler();
+			increasePC();
+			return;
+		
         default:
             printf("Unexpected system call type %d\n", type);
         }
