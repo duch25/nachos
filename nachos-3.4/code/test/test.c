@@ -1,21 +1,20 @@
 #include "syscall.h"
+#define MAX_LENGTH 32
 
-
-int main() {
-	int n;
-	CreateFile("testCreateFile.txt");	
-	n = Open("testCreateFile.txt", 0);
-	if (n != -1) {
-		PrintString("Mo file thanh cong!\n");
-	} else {
-		PrintString("Mo file khong thanh cong!\n");
-	}
+int main()
+{
+	char fileName[MAX_LENGTH];
+	int fileID = Open("bach.txt", 0);
+	Read(fileName, 20, fileID); // Goi ham Read doc ten file vua nhap
+	PrintString(fileName);
+	PrintString("\n");
 	
-	n = Close(n);
-	if (n != -1) {
-		PrintString("Dong file thanh cong!\n");
-	} else {
-		PrintString("Dong file khong thanh cong!\n");
-	}
+	Read(fileName, 123, fileID); // Goi ham Read doc ten file vua nhap
+	PrintString(fileName);
+	Close(fileID);
+		
+	
+	
+	
 	Halt();
 }
