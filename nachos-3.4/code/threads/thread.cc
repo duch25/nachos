@@ -32,17 +32,23 @@
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
 
-Thread::Thread(char* threadName)
+Thread::Thread(char* debugName)
 {
-    name = threadName;
+    name = debugName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+    // Khoi tao
+    processID = 0;
+    exitStatus = 0;
+    //mTable = new FileTable(MAX_FILE);    
+    //---------------------------------------------------------------------
+
 #ifdef USER_PROGRAM
     space = NULL;
+	
 #endif
 }
-
 //----------------------------------------------------------------------
 // Thread::~Thread
 // 	De-allocate a thread.
@@ -58,7 +64,6 @@ Thread::Thread(char* threadName)
 Thread::~Thread()
 {
     DEBUG('t', "Deleting thread \"%s\"\n", name);
-
     ASSERT(this != currentThread);
     if (stack != NULL)
 	DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
@@ -83,13 +88,17 @@ Thread::~Thread()
 //	"func" is the procedure to run concurrently.
 //	"arg" is a single argument to be passed to the procedure.
 //----------------------------------------------------------------------
-
+void 
+Thread::FreeSpace(){
+	if (this->space != 0)
+            delete this->space;
+}
 void 
 Thread::Fork(VoidFunctionPtr func, int arg)
 {
     DEBUG('t', "Forking thread \"%s\" with func = 0x%x, arg = %d\n",
 	  name, (int) func, arg);
-    
+    // Allocate stack memory for func with arg
     StackAllocate(func, arg);
 
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
