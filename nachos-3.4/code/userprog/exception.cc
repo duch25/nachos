@@ -607,6 +607,39 @@ void ExitHandler(){
 	return;
 }
 
+// Xu ly syscall CreateSemaphore
+void CreateSemaphoreHandler(){
+	// int CreateSemaphore(char* name, int semval).
+	int virtAddr = machine->ReadRegister(4);
+	int semval = machine->ReadRegister(5);
+	char *name = User2System(virtAddr, MAX_LENGTH_FILENAME + 1);
+	if(name == NULL)
+	{
+		DEBUG('a', "\n Not enough memory in System");
+		printf("\n Not enough memory in System");
+		machine->WriteRegister(2, -1);
+		delete[] name;
+		increasePC();
+		return;
+	}
+			
+	int res = semTab->Create(name, semval);
+	if(res == -1)
+	{
+		DEBUG('a', "\n Khong the khoi tao semaphore");
+		printf("\n Khong the khoi tao semaphore");
+		machine->WriteRegister(2, -1);
+		delete[] name;
+		increasePC();
+		return;				
+	}
+			
+	delete[] name;
+	machine->WriteRegister(2, res);
+	increasePC();
+	return;
+}
+
 
 void ExceptionHandler(ExceptionType which)
 {
