@@ -588,6 +588,26 @@ void JoinHandler() {
 	return;
 }
 
+// Xu ly syscall Exit
+void ExitHandler(){
+	int exitStatus = machine->ReadRegister(4);
+	if(exitStatus != 0)
+	{
+		increasePC();
+		return;
+			
+	}			
+			
+	int res = pTab->ExitUpdate(exitStatus);
+	machine->WriteRegister(2, res);
+
+	currentThread->FreeSpace();
+	currentThread->Finish();
+	increasePC();
+	return;
+}
+
+
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
