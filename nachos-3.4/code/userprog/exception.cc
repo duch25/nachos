@@ -27,7 +27,7 @@
 
 // MAX_SIZE cho viec xu ly cac syscall lien quan den chuoi
 #define MAX_SIZE 1000
-
+#define MAX_LENGTH_FILENAME 32
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -258,7 +258,7 @@ void PrintIntHandler()
     delete buffer;
     return increasePC();
 }
-
+/*
 // Cai dat ham readChar tu console
 char readChar()
 {
@@ -497,6 +497,18 @@ void ReadStringHandler(){
 	delete buffer; 
 	increasePC();
 	return;
+}
+void PrintStringHandler(){
+	int virtAddr;
+	char* buffer;
+	virtAddr = machine->ReadRegister(4); 
+	buffer = User2System(virtAddr, 255);
+	int length = 0;
+	while (buffer[length] != 0) length++;
+	synchConsole->Write(buffer, length + 1);
+	delete buffer; 
+	increasePC();
+	return;	
 }
 
 

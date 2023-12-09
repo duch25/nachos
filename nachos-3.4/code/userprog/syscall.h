@@ -22,7 +22,7 @@
 #define SC_Exit 1
 #define SC_Exec 2
 #define SC_Join 3
-#define SC_Create 4
+#define SC_CreateFile 4
 #define SC_Open 5
 #define SC_Read 6
 #define SC_Write 7
@@ -41,11 +41,11 @@
 
 #define SC_ReadString 25
 #define SC_PrintString 2503
-
-//syscall semaphore, up, down
 #define SC_CreateSemaphore 15
 #define SC_Up 16
 #define SC_Down 17
+
+
 #ifndef IN_ASM
 
 /* The system call interface.  These are the operations the Nachos
@@ -101,15 +101,15 @@ typedef int OpenFileId;
 #define ConsoleOutput 1
 
 /* Create a Nachos file, with "name" */
-void Create(char *name);
+int CreateFile(char *name);
 
 /* Open the Nachos file "name", and return an "OpenFileId" that can
  * be used to read and write to the file.
  */
-OpenFileId Open(char *name);
+OpenFileId Open(char *name, int type);
 
 /* Write "size" bytes from "buffer" to the open file. */
-void Write(char *buffer, int size, OpenFileId id);
+int Write(char *buffer, int size, OpenFileId id);
 
 /* Read "size" bytes from the open file into "buffer".
  * Return the number of bytes actually read -- if the open file isn't
@@ -120,7 +120,8 @@ void Write(char *buffer, int size, OpenFileId id);
 int Read(char *buffer, int size, OpenFileId id);
 
 /* Close the file, we're done reading and writing to it. */
-void Close(OpenFileId id);
+
+int Close(OpenFileId id);
 
 /* User-level thread operations: Fork and Yield.  To allow multiple
  * threads to run within a user program.
@@ -138,8 +139,6 @@ void Yield();
 
 int ReadInt();
 
-
-
 // Khai bao ten ham PrintInt
 void PrintInt(int number);
 
@@ -149,9 +148,7 @@ char ReadChar();
 void PrintChar(char c);
 
 void ReadString(char buffer[], int length);
-
 void PrintString(char buffer[]);
-
 int CreateSemaphore(char* name, int semval);
 
 int Up(char* name);
