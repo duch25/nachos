@@ -654,6 +654,7 @@ void UpHandler(){
 	increasePC();
 	return;
 }
+
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);

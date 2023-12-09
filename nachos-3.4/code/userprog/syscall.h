@@ -138,6 +138,8 @@ void Yield();
 
 int ReadInt();
 
+
+
 // Khai bao ten ham PrintInt
 void PrintInt(int number);
 
