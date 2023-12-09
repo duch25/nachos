@@ -579,6 +579,15 @@ void ExecHandler(){
 }
 
 
+// Xu ly syscall Join
+void JoinHandler() {
+	int id = machine->ReadRegister(4);
+	int res = pTab->JoinUpdate(id);
+	machine->WriteRegister(2, res);
+	increasePC();
+	return;
+}
+
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
