@@ -15,6 +15,11 @@
 #include "interrupt.h"
 #include "stats.h"
 #include "timer.h"
+#include "pcb.h"
+#include "ptable.h"
+#include "stable.h"
+
+
 
 // Initialization and cleanup routines
 extern void Initialize(int argc, char **argv); 	// Initialization,
@@ -32,9 +37,13 @@ extern Timer *timer;				// the hardware alarm clock
 #ifdef USER_PROGRAM
 #include "machine.h"
 #include "synchcons.h"
-
+#include "synch.h"
 extern Machine* machine;	// user program memory and registers
 extern SynchConsole* synchConsole;
+extern PTable *pTab;
+extern Semaphore *addrLock;
+extern BitMap *gPhysPageBitMap;
+extern STable *semTab;	
 #endif
 
 #ifdef FILESYS_NEEDED 		// FILESYS or FILESYS_STUB 
