@@ -267,6 +267,7 @@ char readChar()
 }
 
 /*Cai dat syscall ReadChar*/
+/*
 void ReadCharHandler()
 {
     char c;
@@ -297,7 +298,7 @@ void PrintCharHandler()
 //      Limit of buffer(int)
 // Output:
 //      Buffer(char *)
-
+*/
 char *User2System(int virtAddr, int limit)
 {
     int i; // index
@@ -350,7 +351,7 @@ int System2User(int virtAddr, int len, char *buffer)
 
     return i;
 }
-
+/*
 // xu ly system call ReadString
 void readString(char buffer[], int length)
 {
@@ -432,7 +433,7 @@ void PrintStringHandler()
         delete[] buffer;
     }
 }
-
+*/
 void CreateFileHandler() {
 	
 	int virtualAddr = machine->ReadRegister(4);
@@ -511,6 +512,36 @@ void ReadHandler() {
 		}
 		delete buffer;
 	}
+}
+// Ham xu ly syscall Exec
+void ExecHandler(){
+	int virtAddr;
+	virtAddr = machine->ReadRegister(4);	// doc dia chi ten chuong trinh tu thanh ghi r4
+	char* name;
+	name = User2System(virtAddr, MAX_LENGTH_FILENAME + 1); // Lay ten chuong trinh, nap vao kernel
+		
+	if(name == NULL)
+	{
+		DEBUG('a', "\n Not enough memory in System");
+		printf("\n Not enough memory in System");
+		machine->WriteRegister(2, -1);
+		return;
+	}
+	OpenFile *oFile = fileSystem->Open(name);
+	if (oFile == NULL)
+	{
+		printf("\nExec:: Can't open this file.");
+		machine->WriteRegister(2,-1);
+		increasePC();
+		return;
+	}
+	delete oFile;
+	// Return child process id
+	int id = pTab->ExecUpdate(name); 
+	machine->WriteRegister(2,id);
+	delete[] name;	
+	increasePC();
+	return;
 }
 
 void WriteHandler() {
@@ -632,30 +663,44 @@ void ExceptionHandler(ExceptionType which)
             increasePC();
             return;
 		
-		case SC_CreateFile:
-			CreateFileHandler();
-			increasePC();
-			return;
-			
-		case SC_Open:
-			OpenHandler();
-			increasePC();
-			return;
-			
-		case SC_Close:
-			CloseHandler();
-			increasePC();
-			return;
-			
-		case SC_Read:
-			ReadHandler();
-			increasePC();
-			return;
-			
-		case SC_Write:
-			WriteHandler();
-			increasePC();
-			return;
+	case SC_CreateFile:
+		CreateFileHandler();
+		increasePC();
+		return;
+		
+	case SC_Open:
+		OpenHandler();
+		increasePC();
+		return;
+		
+	case SC_Close:
+		CloseHandler();
+		increasePC();
+		return;
+		
+	case SC_Read:
+		ReadHandler();
+		increasePC();
+		return;
+		
+	case SC_Write:
+		WriteHandler();
+		increasePC();
+		return;
+	case SC_Exec:
+	    return ExecHandler();
+	case SC_Join:
+	    return JoinHandler();
+	case SC_Exit:
+	    return ExitHandler();
+	case SC_CreateSemaphore:
+	    return CreateSemaphoreHandler();
+	case SC_Up:
+	    return UpHandler();
+	case SC_Down:
+	    return DownHandler();
+	
+
 			
         default:
             printf("Unexpected system call type %d\n", type);
