@@ -27,6 +27,7 @@
 
 // MAX_SIZE cho viec xu ly cac syscall lien quan den chuoi
 #define MAX_SIZE 1000
+#define MAX_LENGTH_FILENAME 32
 
 //----------------------------------------------------------------------
 // ExceptionHandler
@@ -260,13 +261,14 @@ void PrintIntHandler()
 }
 
 // Cai dat ham readChar tu console
+/*
 char readChar()
 {
     char ch = synchConsole->getChar();
     return ch;
 }
 
-/*Cai dat syscall ReadChar*/
+//Cai dat syscall ReadChar
 void ReadCharHandler()
 {
     char c;
@@ -274,6 +276,7 @@ void ReadCharHandler()
     machine->WriteRegister(2, c);
     return increasePC();
 }
+
 
 // Cai dat printChar
 void printChar(char c)
@@ -290,7 +293,7 @@ void PrintCharHandler()
     // Tang thanh ghi PC
     return increasePC();
 }
-
+*/
 // ham copy vung nho tu user space vao system space
 // Input:
 //      User space address(int)
@@ -350,7 +353,7 @@ int System2User(int virtAddr, int len, char *buffer)
 
     return i;
 }
-
+/*
 // xu ly system call ReadString
 void readString(char buffer[], int length)
 {
@@ -432,7 +435,225 @@ void PrintStringHandler()
         delete[] buffer;
     }
 }
+*/
 
+
+
+void ReadCharHandler(){
+	int maxBytes = 255;
+	char* buffer = new char[255];
+	int numBytes = synchConsole->Read(buffer, maxBytes);
+
+	if(numBytes > 1) //Neu nhap nhieu hon 1 ky tu thi khong hop le
+	{
+		printf("Chi duoc nhap duy nhat 1 ky tu!");
+		DEBUG('a', "\nERROR: Chi duoc nhap duy nhat 1 ky tu!");
+		machine->WriteRegister(2, 0);
+	}
+	else if(numBytes == 0) //Ky tu rong
+	{
+		printf("Ky tu rong!");
+		DEBUG('a', "\nERROR: Ky tu rong!");
+		machine->WriteRegister(2, 0);
+	}
+	else
+	{
+		//Chuoi vua lay co dung 1 ky tu, lay ky tu o index = 0, return vao thanh ghi R2
+		char c = buffer[0];
+		machine->WriteRegister(2, c);
+	}
+
+	delete buffer;
+	return;
+}
+
+void PrintCharHandler(){
+	char c = (char)machine->ReadRegister(4);
+	synchConsole->Write(&c, 1);
+	increasePC();
+	return;
+}
+
+void ReadStringHandler(){
+	int virtAddr, length;
+	char* buffer;
+	virtAddr = machine->ReadRegister(4);
+	length = machine->ReadRegister(5); 
+	buffer = User2System(virtAddr, length); 
+	synchConsole->Read(buffer, length); 
+	System2User(virtAddr, length, buffer); 
+	delete buffer; 
+	increasePC();
+	return;
+}
+
+void PrintStringHandler(){
+	int virtAddr;
+	char* buffer;
+	virtAddr = machine->ReadRegister(4); 
+	buffer = User2System(virtAddr, 255);
+	int length = 0;
+	while (buffer[length] != 0) length++;
+	synchConsole->Write(buffer, length + 1);
+	delete buffer; 
+	increasePC();
+	return;	
+}
+
+// Ham xu ly syscall Exec
+void ExecHandler(){
+	int virtAddr;
+	virtAddr = machine->ReadRegister(4);	// doc dia chi ten chuong trinh tu thanh ghi r4
+	char* name;
+	name = User2System(virtAddr, MAX_LENGTH_FILENAME + 1); // Lay ten chuong trinh, nap vao kernel
+		
+	if(name == NULL)
+	{
+		DEBUG('a', "\n Not enough memory in System");
+		printf("\n Not enough memory in System");
+		machine->WriteRegister(2, -1);
+		return;
+	}
+	OpenFile *oFile = fileSystem->Open(name);
+	if (oFile == NULL)
+	{
+		printf("\nExec:: Can't open this file.");
+		machine->WriteRegister(2,-1);
+		increasePC();
+		return;
+	}
+	delete oFile;
+	// Return child process id
+	int id = pTab->ExecUpdate(name); 
+	machine->WriteRegister(2,id);
+	delete[] name;	
+	increasePC();
+	return;
+}
+
+// Xu ly syscall Join
+void JoinHandler() {
+	int id = machine->ReadRegister(4);
+	int res = pTab->JoinUpdate(id);
+	machine->WriteRegister(2, res);
+	increasePC();
+	return;
+}
+
+
+// Xu ly syscall Exit
+void ExitHandler(){
+	int exitStatus = machine->ReadRegister(4);
+	if(exitStatus != 0)
+	{
+		increasePC();
+		return;
+			
+	}			
+			
+	int res = pTab->ExitUpdate(exitStatus);
+	machine->WriteRegister(2, res);
+
+	currentThread->FreeSpace();
+	currentThread->Finish();
+	increasePC();
+	return;
+}
+
+// Xu ly syscall CreateSemaphore
+void CreateSemaphoreHandler(){
+	// int CreateSemaphore(char* name, int semval).
+	int virtAddr = machine->ReadRegister(4);
+	int semval = machine->ReadRegister(5);
+	char *name = User2System(virtAddr, MAX_LENGTH_FILENAME + 1);
+	if(name == NULL)
+	{
+		DEBUG('a', "\n Not enough memory in System");
+		printf("\n Not enough memory in System");
+		machine->WriteRegister(2, -1);
+		delete[] name;
+		increasePC();
+		return;
+	}
+			
+	int res = semTab->Create(name, semval);
+	if(res == -1)
+	{
+		DEBUG('a', "\n Khong the khoi tao semaphore");
+		printf("\n Khong the khoi tao semaphore");
+		machine->WriteRegister(2, -1);
+		delete[] name;
+		increasePC();
+		return;				
+	}
+			
+	delete[] name;
+	machine->WriteRegister(2, res);
+	increasePC();
+	return;
+}
+
+void DownHandler(){
+	int virtAddr = machine->ReadRegister(4);
+
+	char *name = User2System(virtAddr, MAX_LENGTH_FILENAME + 1);
+	if(name == NULL)
+	{
+		DEBUG('a', "\n Not enough memory in System");
+		printf("\n Not enough memory in System");
+		machine->WriteRegister(2, -1);
+		delete[] name;
+		increasePC();
+		return;
+	}
+			
+	int res = semTab->Wait(name);
+	if(res == -1)
+	{
+		DEBUG('a', "\n Khong ton tai ten semaphore nay!");
+		printf("\n Khong ton tai ten semaphore nay!");
+		machine->WriteRegister(2, -1);
+		delete[] name;
+		increasePC();
+		return;				
+	}
+			
+	delete[] name;
+	machine->WriteRegister(2, res);
+	increasePC();
+	return;
+}
+
+void UpHandler(){
+	int virtAddr = machine->ReadRegister(4);
+
+	char *name = User2System(virtAddr, MAX_LENGTH_FILENAME + 1);
+	if(name == NULL)
+	{
+		DEBUG('a', "\n Not enough memory in System");
+		printf("\n Not enough memory in System");
+		machine->WriteRegister(2, -1);
+		delete[] name;
+		increasePC();
+		return;
+	}
+			
+	int res = semTab->Signal(name);
+	if(res == -1)
+	{
+		DEBUG('a', "\n Khong ton tai ten semaphore nay!");
+		printf("\n Khong ton tai ten semaphore nay!");
+		machine->WriteRegister(2, -1);
+		delete[] name;
+		increasePC();
+		return;				
+	}
+			
+	delete[] name;
+	machine->WriteRegister(2, res);
+	increasePC();
+	return;
+}
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
@@ -495,29 +716,25 @@ void ExceptionHandler(ExceptionType which)
             printf("Shutdown, initiated by user program.\n");
             interrupt->Halt();
             return;
-
         case SC_ReadInt:
             return ReadIntHandler();
-            
         case SC_PrintInt:
-			return PrintIntHandler();
-
-        case SC_ReadChar:
-            return ReadCharHandler();
-
-        case SC_PrintChar:
-            return PrintCharHandler();
-
-        case SC_ReadString:
-            ReadStringHandler();
-            increasePC();
-            return;
-
-        case SC_PrintString:
-            PrintStringHandler();
-            increasePC();
-            return;
-
+	    return PrintIntHandler();
+	case SC_ReadChar:
+	    return ReadCharHandler();
+	case SC_PrintChar:
+	    return PrintCharHandler();
+	case SC_ReadString:
+	    return ReadStringHandler();	     
+	case SC_PrintString:
+	    return PrintStringHandler();	
+	case SC_Exec:
+	    return ExecHandler();
+	case SC_Join:
+	    return JoinHandler();
+	case SC_Exit:
+	    return ExitHandler();
+	
         default:
             printf("Unexpected system call type %d\n", type);
         }
