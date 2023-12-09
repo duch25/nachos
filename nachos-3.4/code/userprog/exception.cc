@@ -671,6 +671,36 @@ void DownHandler(){
 	return;
 }
 
+void UpHandler(){
+	int virtAddr = machine->ReadRegister(4);
+
+	char *name = User2System(virtAddr, MAX_LENGTH_FILENAME + 1);
+	if(name == NULL)
+	{
+		DEBUG('a', "\n Not enough memory in System");
+		printf("\n Not enough memory in System");
+		machine->WriteRegister(2, -1);
+		delete[] name;
+		increasePC();
+		return;
+	}
+			
+	int res = semTab->Signal(name);
+	if(res == -1)
+	{
+		DEBUG('a', "\n Khong ton tai ten semaphore nay!");
+		printf("\n Khong ton tai ten semaphore nay!");
+		machine->WriteRegister(2, -1);
+		delete[] name;
+		increasePC();
+		return;				
+	}
+			
+	delete[] name;
+	machine->WriteRegister(2, res);
+	increasePC();
+	return;
+}
 
 void ExceptionHandler(ExceptionType which)
 {
