@@ -27,7 +27,7 @@
 
 // MAX_SIZE cho viec xu ly cac syscall lien quan den chuoi
 #define MAX_SIZE 1000
-
+#define MAX_LENGTH_FILENAME 32
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -434,6 +434,69 @@ void PrintStringHandler()
     }
 }
 */
+
+void ReadCharHandler(){
+	int maxBytes = 255;
+	char* buffer = new char[255];
+	int numBytes = synchConsole->Read(buffer, maxBytes);
+
+	if(numBytes > 1) //Neu nhap nhieu hon 1 ky tu thi khong hop le
+	{
+		printf("Chi duoc nhap duy nhat 1 ky tu!");
+		DEBUG('a', "\nERROR: Chi duoc nhap duy nhat 1 ky tu!");
+		machine->WriteRegister(2, 0);
+	}
+	else if(numBytes == 0) //Ky tu rong
+	{
+		printf("Ky tu rong!");
+		DEBUG('a', "\nERROR: Ky tu rong!");
+		machine->WriteRegister(2, 0);
+	}
+	else
+	{
+		//Chuoi vua lay co dung 1 ky tu, lay ky tu o index = 0, return vao thanh ghi R2
+		char c = buffer[0];
+		machine->WriteRegister(2, c);
+	}
+
+	delete buffer;
+	return;
+}
+
+void PrintCharHandler(){
+	char c = (char)machine->ReadRegister(4);
+	synchConsole->Write(&c, 1);
+	increasePC();
+	return;
+}
+
+void ReadStringHandler(){
+	int virtAddr, length;
+	char* buffer;
+	virtAddr = machine->ReadRegister(4);
+	length = machine->ReadRegister(5); 
+	buffer = User2System(virtAddr, length); 
+	synchConsole->Read(buffer, length); 
+	System2User(virtAddr, length, buffer); 
+	delete buffer; 
+	increasePC();
+	return;
+}
+void PrintStringHandler(){
+	int virtAddr;
+	char* buffer;
+	virtAddr = machine->ReadRegister(4); 
+	buffer = User2System(virtAddr, 255);
+	int length = 0;
+	while (buffer[length] != 0) length++;
+	synchConsole->Write(buffer, length + 1);
+	delete buffer; 
+	increasePC();
+	return;	
+}
+
+
+
 void CreateFileHandler() {
 	
 	int virtualAddr = machine->ReadRegister(4);
