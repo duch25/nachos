@@ -433,6 +433,120 @@ void PrintStringHandler()
     }
 }
 
+void CreateFileHandler() {
+	
+	int virtualAddr = machine->ReadRegister(4);
+	char* fileName = User2System(virtualAddr, 33);
+	if (fileName == NULL || strlen(fileName) == 0) {
+		machine->WriteRegister(2, -1); 
+		return;
+	}
+	if (!fileSystem->Create(fileName, 0)) {
+		machine->WriteRegister(2, -1);
+		delete fileName;
+		return;
+	}
+	machine->WriteRegister(2, 0);
+	delete fileName;
+}
+
+void OpenHandler() {
+	int virtualAddr = machine->ReadRegister(4); 
+	int type = machine->ReadRegister(5); 
+	
+	char* fileName = User2System(virtualAddr, 32);
+	
+	int freeSlot = fileSystem->FindFreeSlot();
+	if (freeSlot != -1 && type >= 0) {
+		if (type <= 1) {
+			fileSystem->openf[freeSlot] = fileSystem->Open(fileName, type);
+			if (fileSystem->openf[freeSlot] != NULL) {
+				machine->WriteRegister(2, freeSlot); 
+			} else {
+				machine->WriteRegister(2, -1); 
+			}
+		} else if (type <= 3) {
+			machine->WriteRegister(2, type - 2); 
+		} else {
+			printf("Invalid type!!!\n");
+			machine->WriteRegister(2, -1);
+		}
+	} else machine->WriteRegister(2, -1); 
+	delete fileName;
+}
+
+void CloseHandler() {
+	int fileID = machine->ReadRegister(4);
+	if (fileID >= 0 && fileID <= 9 && fileSystem->openf[fileID]) {
+		delete fileSystem->openf[fileID]; 
+		fileSystem->openf[fileID] = NULL; 
+		machine->WriteRegister(2, 0);
+		return;
+	}
+	machine->WriteRegister(2, -1);
+}
+
+void ReadHandler() {
+	int virtualAddr = machine->ReadRegister(4); 
+	int charcount = machine->ReadRegister(5); 
+	int fileID = machine->ReadRegister(6);
+	int oldPos;
+	char* buffer;
+	if (fileID < 0 || fileID > 9 || fileID == 1 || fileSystem->openf[fileID] == NULL) {
+		printf("Khong the doc!!!\n");
+		machine->WriteRegister(2, -1);
+	} else {
+		oldPos = fileSystem->openf[fileID]->getSeekPosition(); 
+		buffer = User2System(virtualAddr, charcount);
+		if (fileID == 0) { // stdin
+			int numBytes = synchConsole->Read(buffer, charcount); 
+			machine->WriteRegister(2, numBytes);
+			System2User(virtualAddr, numBytes, buffer);
+		} else if (fileSystem->openf[fileID]->Read(buffer, charcount)) {
+			int newPos = fileSystem->openf[fileID]->getSeekPosition();
+			System2User(virtualAddr, newPos - oldPos, buffer); 
+			machine->WriteRegister(2, newPos - oldPos);
+		} else {
+			machine->WriteRegister(2, -2);
+		}
+		delete buffer;
+	}
+}
+
+void WriteHandler() {
+	int virtualAddr = machine->ReadRegister(4); 
+	int charcount = machine->ReadRegister(5); 
+	int fileID = machine->ReadRegister(6);
+	int oldPos;
+	char* buffer;
+	if (fileID < 0 || fileID > 9 || fileID == 0 || fileSystem->openf[fileID] == NULL || fileSystem->openf[fileID]->type == 1) {
+		printf("Khong the ghi!!!\n");
+		machine->WriteRegister(2, -1);
+	} else {
+		oldPos = fileSystem->openf[fileID]->getSeekPosition(); 
+		buffer = User2System(virtualAddr, charcount);
+		if (fileID == 1) { // stdout
+			int i = 0;
+			while (buffer[i] != 0) // Vong lap de write den khi gap ky tu '\n'
+			{
+				synchConsole->Write(buffer + i, 1); // Su dung ham Write cua lop SynchConsole 
+				i++;
+			}
+			machine->WriteRegister(2, i - 1);
+		} else {
+			int i = 0;
+			while (buffer[i] != 0) {
+				fileSystem->openf[fileID]->Write(buffer + i, 1);
+				i++;
+			}
+			int newPos = fileSystem->openf[fileID]->getSeekPosition();
+			machine->WriteRegister(2, newPos - oldPos);
+		} 
+		delete buffer;
+	}
+}
+
+
 void ExceptionHandler(ExceptionType which)
 {
     int type = machine->ReadRegister(2);
@@ -517,7 +631,32 @@ void ExceptionHandler(ExceptionType which)
             PrintStringHandler();
             increasePC();
             return;
-
+		
+		case SC_CreateFile:
+			CreateFileHandler();
+			increasePC();
+			return;
+			
+		case SC_Open:
+			OpenHandler();
+			increasePC();
+			return;
+			
+		case SC_Close:
+			CloseHandler();
+			increasePC();
+			return;
+			
+		case SC_Read:
+			ReadHandler();
+			increasePC();
+			return;
+			
+		case SC_Write:
+			WriteHandler();
+			increasePC();
+			return;
+			
         default:
             printf("Unexpected system call type %d\n", type);
         }
