@@ -258,15 +258,16 @@ void PrintIntHandler()
     delete buffer;
     return increasePC();
 }
-
+/*
 // Cai dat ham readChar tu console
 char readChar()
 {
     char ch = synchConsole->getChar();
     return ch;
 }
-
+*/
 /*Cai dat syscall ReadChar*/
+/*
 void ReadCharHandler()
 {
     char c;
@@ -297,7 +298,7 @@ void PrintCharHandler()
 //      Limit of buffer(int)
 // Output:
 //      Buffer(char *)
-
+*/
 char *User2System(int virtAddr, int limit)
 {
     int i; // index
@@ -350,7 +351,7 @@ int System2User(int virtAddr, int len, char *buffer)
 
     return i;
 }
-
+/*
 // xu ly system call ReadString
 void readString(char buffer[], int length)
 {
@@ -432,7 +433,7 @@ void PrintStringHandler()
         delete[] buffer;
     }
 }
-
+*/
 void CreateFileHandler() {
 	
 	int virtualAddr = machine->ReadRegister(4);
@@ -632,30 +633,42 @@ void ExceptionHandler(ExceptionType which)
             increasePC();
             return;
 		
-		case SC_CreateFile:
-			CreateFileHandler();
-			increasePC();
-			return;
-			
-		case SC_Open:
-			OpenHandler();
-			increasePC();
-			return;
-			
-		case SC_Close:
-			CloseHandler();
-			increasePC();
-			return;
-			
-		case SC_Read:
-			ReadHandler();
-			increasePC();
-			return;
-			
-		case SC_Write:
-			WriteHandler();
-			increasePC();
-			return;
+	case SC_CreateFile:
+		CreateFileHandler();
+		increasePC();
+		return;
+		
+	case SC_Open:
+		OpenHandler();
+		increasePC();
+		return;
+		
+	case SC_Close:
+		CloseHandler();
+		increasePC();
+		return;
+		
+	case SC_Read:
+		ReadHandler();
+		increasePC();
+		return;
+		
+	case SC_Write:
+		WriteHandler();
+		increasePC();
+		return;
+		case SC_Exec:
+	    return ExecHandler();
+	case SC_Join:
+	    return JoinHandler();
+	case SC_Exit:
+	    return ExitHandler();
+	case SC_CreateSemaphore:
+	    return CreateSemaphoreHandler();
+	case SC_Up:
+	    return UpHandler();
+	case SC_Down:
+	    return DownHandler();
 			
         default:
             printf("Unexpected system call type %d\n", type);
