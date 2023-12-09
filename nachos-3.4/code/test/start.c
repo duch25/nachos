@@ -74,13 +74,13 @@ Join:
 	j	$31
 	.end Join
 
-	.globl CreateFile
-	.ent	CreateFile
-CreateFile:
-	addiu $2,$0,SC_CreateFile
+	.globl Create
+	.ent	Create
+Create:
+	addiu $2,$0,SC_Create
 	syscall
 	j	$31
-	.end CreateFile
+	.end Create
 
 	.globl Open
 	.ent	Open
@@ -183,6 +183,33 @@ PrintString:
 	syscall
 	j	$31
 	.end PrintString
+
+	.globl CreateSemaphore
+	.ent CreateSemaphore
+
+CreateSemaphore:
+	addiu $2, $0, SC_CreateSemaphore
+	syscall
+	j	$31
+	.end CreateSemaphore
+
+	.globl Up
+	.ent Up
+
+Up:
+	addiu $2, $0, SC_Up
+	syscall
+	j	$31
+	.end Up
+
+	.globl Down
+	.ent Down
+
+Down:
+	addiu $2, $0, SC_Down
+	syscall
+	j	$31
+	.end Down
 
 
 /* dummy function to keep gcc happy */
