@@ -734,6 +734,12 @@ void ExceptionHandler(ExceptionType which)
 	    return JoinHandler();
 	case SC_Exit:
 	    return ExitHandler();
+	case SC_CreateSemaphore:
+	    return CreateSemaphoreHandler();
+	case SC_Up:
+	    return UpHandler();
+	case SC_Down:
+	    return DownHandler();
 	
         default:
             printf("Unexpected system call type %d\n", type);
