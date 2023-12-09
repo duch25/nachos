@@ -513,36 +513,7 @@ void ReadHandler() {
 		delete buffer;
 	}
 }
-// Ham xu ly syscall Exec
-void ExecHandler(){
-	int virtAddr;
-	virtAddr = machine->ReadRegister(4);	// doc dia chi ten chuong trinh tu thanh ghi r4
-	char* name;
-	name = User2System(virtAddr, MAX_LENGTH_FILENAME + 1); // Lay ten chuong trinh, nap vao kernel
-		
-	if(name == NULL)
-	{
-		DEBUG('a', "\n Not enough memory in System");
-		printf("\n Not enough memory in System");
-		machine->WriteRegister(2, -1);
-		return;
-	}
-	OpenFile *oFile = fileSystem->Open(name);
-	if (oFile == NULL)
-	{
-		printf("\nExec:: Can't open this file.");
-		machine->WriteRegister(2,-1);
-		increasePC();
-		return;
-	}
-	delete oFile;
-	// Return child process id
-	int id = pTab->ExecUpdate(name); 
-	machine->WriteRegister(2,id);
-	delete[] name;	
-	increasePC();
-	return;
-}
+
 
 void WriteHandler() {
 	int virtualAddr = machine->ReadRegister(4); 
@@ -577,6 +548,45 @@ void WriteHandler() {
 	}
 }
 
+// Ham xu ly syscall Exec
+void ExecHandler(){
+	int virtAddr;
+	virtAddr = machine->ReadRegister(4);	// doc dia chi ten chuong trinh tu thanh ghi r4
+	char* name;
+	name = User2System(virtAddr, MAX_LENGTH_FILENAME + 1); // Lay ten chuong trinh, nap vao kernel
+		
+	if(name == NULL)
+	{
+		DEBUG('a', "\n Not enough memory in System");
+		printf("\n Not enough memory in System");
+		machine->WriteRegister(2, -1);
+		return;
+	}
+	OpenFile *oFile = fileSystem->Open(name);
+	if (oFile == NULL)
+	{
+		printf("\nExec:: Can't open this file.");
+		machine->WriteRegister(2,-1);
+		increasePC();
+		return;
+	}
+	delete oFile;
+	// Return child process id
+	int id = pTab->ExecUpdate(name); 
+	machine->WriteRegister(2,id);
+	delete[] name;	
+	increasePC();
+	return;
+}
+
+// Xu ly syscall Join
+void JoinHandler() {
+	int id = machine->ReadRegister(4);
+	int res = pTab->JoinUpdate(id);
+	machine->WriteRegister(2, res);
+	increasePC();
+	return;
+}
 
 void ExceptionHandler(ExceptionType which)
 {
