@@ -8,6 +8,7 @@
 #include "copyright.h"
 #include "system.h"
 
+
 // This defines *all* of the global data structures used by Nachos.
 // These are all initialized and de-allocated by this file.
 
@@ -28,10 +29,13 @@ SynchDisk   *synchDisk;
 #endif
 
 #ifdef USER_PROGRAM	// requires either FILESYS or FILESYS_STUB
-Machine* machine;	// user program memory and registers
+Machine *machine;	// user program memory and registers
 SynchConsole* synchConsole;
-Semaphore* addrLock;
-BitMap* gPhysPageBitMap;
+
+Semaphore *addrLock;	// semaphore
+BitMap *gPhysPageBitMap;	// quan ly cac frame
+PTable *pTab;		// quan ly bang tien trinh
+STable *semTab;		// quan ly semaphore
 #endif
 
 #ifdef NETWORK
@@ -153,8 +157,11 @@ Initialize(int argc, char **argv)
 #ifdef USER_PROGRAM
     machine = new Machine(debugUserProg);	// this must come first
     synchConsole = new SynchConsole();
+
     addrLock = new Semaphore("addrLock", 1);
-    gPhysPageBitMap = new BitMap(128);
+    gPhysPageBitMap = new BitMap(256);
+    pTab = new PTable(10);
+    semTab = new STable();
 #endif
 
 #ifdef FILESYS
@@ -185,6 +192,8 @@ Cleanup()
 #ifdef USER_PROGRAM
     delete machine;
     delete synchConsole;
+
+    //delete addrLock;	
 #endif
 
 #ifdef FILESYS_NEEDED
@@ -201,4 +210,3 @@ Cleanup()
     
     Exit(0);
 }
-

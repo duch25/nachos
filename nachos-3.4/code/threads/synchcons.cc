@@ -134,7 +134,7 @@ SynchConsole::Read(char *into, int numBytes)
 	else
 		return loop;				// How many did we rd
 }
-
+/*
 char
 SynchConsole::getChar(){
 	RLineBlock->P();
@@ -149,5 +149,6 @@ SynchConsole::putChar(char c){
 	cons->PutChar(c);		// Write and wait
 	synchWriteAvail->P();
 }
+*/
 
 // CAE - MULTI - END SECTION
