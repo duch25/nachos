@@ -146,11 +146,14 @@ char ReadChar();
 void PrintChar(char c);
 
 void ReadString(char buffer[], int length);
+
 void PrintString(char buffer[]);
 
-void ReadString(char buffer[], int length);
-void PrintString(char buffer[]);
 int CreateSemaphore(char* name, int semval);
+
+int Up(char* name);
+
+int Down(char* name);
 
 #endif /* IN_ASM */
 
