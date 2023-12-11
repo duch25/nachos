@@ -161,7 +161,7 @@ AddrSpace::AddrSpace(char* filename) {
 		pageTable[i].readOnly = FALSE; // if the code segment was entirely on a separate page, we could set its pages to be read-only 
 		// xóa các trang này trên memory 
 		bzero(&(machine->mainMemory[pageTable[i].physicalPage*PageSize]), PageSize); 
-		printf("phyPage %d \n",pageTable[i].physicalPage); 
+		//printf("phyPage %d \n",pageTable[i].physicalPage); 
 	}
 	
 	addrLock->V();
