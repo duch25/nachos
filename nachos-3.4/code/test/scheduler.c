@@ -1,12 +1,13 @@
 #include "syscall.h"
 
-
 void main()
 {
-	int pingPID, pongPID;
-	PrintString("Ping-Pong test starting...\n\n");
-	pongPID = Exec("./test/pong");
-	pingPID = Exec("./test/ping");
-	Join(pongPID);	
+    int pingPID, pongPID;
+    CreateSemaphore("ping", 1);
+    CreateSemaphore("pong", 0);
+     
+    pingPID = Exec("./test/ping");
+    pongPID = Exec("./test/pong");
+	
 	Join(pingPID);
 }
