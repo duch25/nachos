@@ -6,8 +6,7 @@ void WriteDataIntoOutput(char data[], int len) {
 	int outputID, status, index, i;
 	char c;
 	outputID = Open("output.txt", 0);
-	if(outputID == -1) {
-		//PrintString(data);
+	if (outputID == -1) {
 		Up("main");
 		return;
 	}
@@ -21,7 +20,7 @@ void WriteDataIntoOutput(char data[], int len) {
 		index++;
 	}
 	Write(data, len, outputID);
-	
+
 	Close(outputID);
 }
 
@@ -29,28 +28,27 @@ int main()
 {
     int inputID, status, index, i;
     char c, data[10];
-    
-    
+
+
     inputID = Open("input.txt", 1);
-    if(inputID == -1) {	
-	Up("main");
-	return 0;
+    if (inputID == -1) {
+		Up("main");
+		return;
     }
     index = 0;
-    
+
     while (1) {
 		Read(&c, 1, inputID);
 		if (c == '\n') break;
 	}
-    
+
     status = CreateFile("output.txt");
-    if(status == -1 ) {
-	Up("main");
-	return 0;
-    }
-    
+    if (status == -1) {
+		Up("main");
+		return;
+	}
     while (1) {
-		
+
 		status = Read(&c, 1, inputID);
 		if (status == -2) { // EOF
 			Down("sinhvien");
@@ -64,7 +62,7 @@ int main()
 			Down("sinhvien");
 			WriteDataIntoOutput(data, index);
 			Up("voinuoc");
-			
+
 			index = 0;
 			data[index] = '\n';
 			index++;
@@ -78,6 +76,5 @@ int main()
 			index++;
 		}
 	}
-	
-    	Up("main");
+	Up("main");
 }

@@ -14,11 +14,11 @@ int main()
 		Down("voinuoc");
 		swID = 0;
 		index = 0;
-		
+
 		outputID = Open("output.txt", 0);
-   		if(outputID == -1) {
+		if(outputID == -1) {
 			Up("main");
-			break;
+			break;		
 		}
 		while (1) {
 			status = Read(&c, 1, outputID);
@@ -31,13 +31,13 @@ int main()
 			contentFile[index] = c;
 			index++;
 		}
-		
+
 		num = 0;
 		id = 0;
 		if (!swID) {
 			swID--;
 		}
-		
+
 		for (i = swID + 1; i < index; i++) {
 			if (contentFile[i] == '\n') {
 				v1 = v2 = 0;
@@ -47,7 +47,7 @@ int main()
 			data[id] = contentFile[i];
 			id++;
 		}
-		
+
 		if(num != 0) {
 			if (v1 == v2) {
 				ans = '1';
@@ -62,14 +62,14 @@ int main()
 				v2 -= v1;
 				v1 = num;
 			}
-				
+
 		}
-		
+
 		Write(" ", 1, outputID);
 		Write(&ans, 1, outputID);
 		Write("  ", 2, outputID);
-		
-		
+
+
 		Close(outputID);
 		Up("sinhvien");
 	}
