@@ -6,7 +6,11 @@ void WriteDataIntoOutput(char data[], int len) {
 	int outputID, status, index, i;
 	char c;
 	outputID = Open("output.txt", 0);
-	
+	if(outputID == -1) {
+		//PrintString(data);
+		Up("main");
+		return;
+	}
 	index = 0;
 	while (1) {
 		status = Read(&c, 1, outputID);
@@ -28,6 +32,10 @@ int main()
     
     
     inputID = Open("input.txt", 1);
+    if(inputID == -1) {	
+	Up("main");
+	return 0;
+    }
     index = 0;
     
     while (1) {
@@ -36,6 +44,10 @@ int main()
 	}
     
     status = CreateFile("output.txt");
+    if(status == -1 ) {
+	Up("main");
+	return 0;
+    }
     
     while (1) {
 		
@@ -67,5 +79,5 @@ int main()
 		}
 	}
 	
-    
+    	Up("main");
 }
