@@ -16,6 +16,10 @@ int main()
 		index = 0;
 		
 		outputID = Open("output.txt", 0);
+   		if(outputID == -1) {
+			Up("main");
+			break;
+		}
 		while (1) {
 			status = Read(&c, 1, outputID);
 			if (status == -2) {

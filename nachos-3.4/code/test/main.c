@@ -2,13 +2,14 @@
 
 int main()
 {
-	int sinhvienPID;
+    int sinhvienPID;
 	
     CreateSemaphore("sinhvien", 1);
     CreateSemaphore("voinuoc", 0);
-    
+    CreateSemaphore("main", 0);
     sinhvienPID = Exec("./test/sinhvien");
     Exec("./test/voinuoc");
-    Join(sinhvienPID);
-    
+    Down("main");
+    //Join(sinhvienPID);  
+    PrintString("Program end\n");
 }
